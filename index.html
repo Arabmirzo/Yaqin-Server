@@ -1,0 +1,1718 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YAQIN SERVIS - Ta'mir boshqaruvi</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: '#2563eb',
+                        primaryDark: '#1d4ed8',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        @media print {
+            body * { visibility: hidden; }
+            #pdfReceiptArea, #pdfReceiptArea * { visibility: visible; }
+            #pdfReceiptArea { position: absolute; left: 0; top: 0; width: 100%; }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col" id="app">
+
+    <!-- LOGIN PAGE VIEW -->
+    <div id="loginView" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden border border-slate-100 transform transition-all">
+            <div class="bg-gradient-to-r from-blue-700 to-indigo-800 p-8 text-white text-center relative">
+                <div class="absolute top-3 right-3 bg-white/10 px-3 py-1 rounded-full text-xs font-medium tracking-wide">CRM v2.6</div>
+                <div class="w-16 h-16 bg-white/10 rounded-2xl mx-auto flex items-center justify-center mb-3 backdrop-blur-md border border-white/20">
+                    <i class="fa-solid fa-screwdriver-wrench text-3xl text-white"></i>
+                </div>
+                <h1 class="text-2xl font-bold tracking-tight">YAQIN SERVIS</h1>
+                <p class="text-blue-100 text-sm mt-1">Kompyuter va noutbuk ta'mir boshqaruvi</p>
+            </div>
+            
+            <form id="loginForm" class="p-8 space-y-5" onsubmit="handleLogin(event)">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">Foydalanuvchi logini (ism)</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400">
+                            <i class="fa-solid fa-user"></i>
+                        </span>
+                        <input type="text" id="loginUsername" placeholder="Loginingizni kiriting..." required
+                            class="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none transition text-slate-700 font-medium">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">Parol</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400">
+                            <i class="fa-solid fa-lock"></i>
+                        </span>
+                        <input type="password" id="loginPass" placeholder="Parolni kiriting..." required
+                            class="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none transition text-slate-700">
+                    </div>
+                    <p class="text-[11px] text-slate-400 mt-1.5">Standart: Admin login: <b>admin</b> (parol: <b></b>) | Usta: <b>kamron</b> (parol: <b></b>)</p>
+                </div>
+
+                <button type="submit" class="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg shadow-blue-600/20 transition-all duration-200 flex items-center justify-center gap-2">
+                    <span>Tizimga kirish</span>
+                    <i class="fa-solid fa-arrow-right-to-bracket"></i>
+                </button>
+
+                <div class="text-center pt-2">
+                    <p class="text-xs text-slate-400">© 2026 Yaqin Servis. Barcha huquqlar himoyalangan.</p>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MAIN APP WRAPPER (Hidden until login) -->
+    <div id="mainApp" class="flex h-screen overflow-hidden hidden">
+        
+        <!-- SIDEBAR -->
+        <aside class="w-64 bg-white border-r border-slate-200 flex flex-col z-20 shrink-0">
+            <div class="p-5 border-b border-slate-100">
+                <h2 class="text-lg font-bold text-blue-700 tracking-tight flex items-center gap-2">
+                    <i class="fa-solid fa-screwdriver-wrench text-blue-600"></i>
+                    YAQIN SERVIS
+                </h2>
+                <p class="text-xs text-slate-400 mt-0.5">Ta'mir boshqaruvi</p>
+            </div>
+
+            <!-- Navigation Links -->
+            <nav class="flex-1 overflow-y-auto px-3 py-4 space-y-1 text-sm font-medium">
+                <a href="#" onclick="switchTab('bosh-sahifa')" id="nav-bosh-sahifa" class="nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 hover:bg-slate-100 transition active-tab">
+                    <i class="fa-solid fa-house w-5 text-center"></i>
+                    <span>Bosh sahifa</span>
+                </a>
+                <a href="#" onclick="switchTab('qurilma-qabul')" id="nav-qurilma-qabul" class="nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 hover:bg-slate-100 transition">
+                    <i class="fa-solid fa-circle-plus w-5 text-center"></i>
+                    <span>Qurilma qabul qilish</span>
+                </a>
+                <a href="#" onclick="switchTab('barcha-tamirlar')" id="nav-barcha-tamirlar" class="nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 hover:bg-slate-100 transition">
+                    <i class="fa-solid fa-screwdriver-wrench w-5 text-center"></i>
+                    <span>Barcha ta'mirlar</span>
+                </a>
+                <a href="#" onclick="switchTab('mijozlar')" id="nav-mijozlar" class="nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 hover:bg-slate-100 transition">
+                    <i class="fa-solid fa-users w-5 text-center"></i>
+                    <span>Mijozlar</span>
+                </a>
+                <a href="#" onclick="switchTab('qidiruv')" id="nav-qidiruv" class="nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 hover:bg-slate-100 transition">
+                    <i class="fa-solid fa-magnifying-glass w-5 text-center"></i>
+                    <span>Qidiruv</span>
+                </a>
+                <div class="pt-3 pb-1 px-3 text-xs font-semibold text-slate-400 uppercase">Katalog va narxlar</div>
+                <a href="#" onclick="switchTab('xizmatlar')" id="nav-xizmatlar" class="nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 hover:bg-slate-100 transition">
+                    <i class="fa-solid fa-tags w-5 text-center"></i>
+                    <span>Xizmatlar va narxlar</span>
+                </a>
+                <a href="#" onclick="switchTab('detallar')" id="nav-detallar" class="nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 hover:bg-slate-100 transition">
+                    <i class="fa-solid fa-microchip w-5 text-center"></i>
+                    <span>Detallar katalogi</span>
+                </a>
+                <div class="pt-3 pb-1 px-3 text-xs font-semibold text-slate-400 uppercase admin-only">Boshqaruv</div>
+                <a href="#" onclick="switchTab('hisobotlar')" id="nav-hisobotlar" class="nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 hover:bg-slate-100 transition admin-only">
+                    <i class="fa-solid fa-chart-pie w-5 text-center"></i>
+                    <span>Hisobotlar</span>
+                </a>
+                <a href="#" onclick="switchTab('xodimlar')" id="nav-xodimlar" class="nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 hover:bg-slate-100 transition admin-only">
+                    <i class="fa-solid fa-user-tie w-5 text-center"></i>
+                    <span>Xodimlar</span>
+                </a>
+                <a href="#" onclick="switchTab('sozlamalar')" id="nav-sozlamalar" class="nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 hover:bg-slate-100 transition">
+                    <i class="fa-solid fa-gear w-5 text-center"></i>
+                    <span>Sozlamalar</span>
+                </a>
+                <a href="#" onclick="switchTab('zaxira')" id="nav-zaxira" class="nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 hover:bg-slate-100 transition admin-only">
+                    <i class="fa-solid fa-database w-5 text-center"></i>
+                    <span>Zaxira yuklash</span>
+                </a>
+            </nav>
+
+            <!-- User profile & Logout -->
+            <div class="p-3 border-t border-slate-100 bg-slate-50 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-sm" id="userAvatar">A</div>
+                    <div>
+                        <div class="text-xs font-semibold text-slate-800" id="userNameDisp">Admin</div>
+                        <div class="text-[10px] text-slate-500 uppercase font-medium" id="userRoleDisp">Administrator</div>
+                    </div>
+                </div>
+                <button onclick="logout()" title="Chiqish" class="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition">
+                    <i class="fa-solid fa-power-off"></i>
+                </button>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT AREA -->
+        <main class="flex-1 flex flex-col overflow-hidden bg-slate-50">
+            
+            <!-- TOP HEADER BAR -->
+            <header class="bg-white border-b border-slate-200 h-16 px-6 flex items-center justify-between z-10 shrink-0">
+                <div class="flex items-center gap-4">
+                    <h2 id="currentTitle" class="text-lg font-bold text-slate-800">Bosh sahifa</h2>
+                </div>
+                
+                <div class="flex items-center gap-4">
+                    <div class="relative w-64 hidden sm:block">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                            <i class="fa-solid fa-magnifying-glass text-xs"></i>
+                        </span>
+                        <input type="text" id="topSearchInput" oninput="globalSearch(this.value)" placeholder="Qidirish (ism, tel, model)..." 
+                            class="w-full pl-9 pr-4 py-2 text-xs bg-slate-100 rounded-xl border border-transparent focus:bg-white focus:border-blue-600 outline-none transition">
+                    </div>
+
+                    <button onclick="switchTab('qurilma-qabul')" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2 rounded-xl shadow-md shadow-blue-600/20 transition flex items-center gap-2">
+                        <i class="fa-solid fa-plus"></i>
+                        <span>Yangi qabul</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- SCROLLABLE CONTENT VIEW CONTAINER -->
+            <div class="flex-1 overflow-y-auto p-6" id="contentContainer">
+                
+                <!-- 1. BOSH SAHIFA (DASHBOARD) -->
+                <div id="tab-bosh-sahifa" class="tab-content space-y-6">
+                    <!-- Metric Cards -->
+                    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+                        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                            <div class="flex items-center justify-between text-blue-600 mb-2">
+                                <div class="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center"><i class="fa-solid fa-users text-sm"></i></div>
+                            </div>
+                            <div>
+                                <div class="text-2xl font-bold text-slate-800" id="stat-total-clients">0</div>
+                                <div class="text-xs text-slate-500 font-medium">Jami mijozlar</div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                            <div class="flex items-center justify-between text-indigo-600 mb-2">
+                                <div class="w-8 h-8 rounded-xl bg-indigo-50 flex items-center justify-center"><i class="fa-solid fa-laptop text-sm"></i></div>
+                            </div>
+                            <div>
+                                <div class="text-2xl font-bold text-slate-800" id="stat-total-devices">0</div>
+                                <div class="text-xs text-slate-500 font-medium">Jami qurilmalar</div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                            <div class="flex items-center justify-between text-amber-600 mb-2">
+                                <div class="w-8 h-8 rounded-xl bg-amber-50 flex items-center justify-center"><i class="fa-solid fa-spinner animate-spin text-sm"></i></div>
+                            </div>
+                            <div>
+                                <div class="text-2xl font-bold text-slate-800" id="stat-in-repair">0</div>
+                                <div class="text-xs text-slate-500 font-medium">Ta'mirlanmoqda</div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                            <div class="flex items-center justify-between text-emerald-600 mb-2">
+                                <div class="w-8 h-8 rounded-xl bg-emerald-50 flex items-center justify-center"><i class="fa-solid fa-circle-check text-sm"></i></div>
+                            </div>
+                            <div>
+                                <div class="text-2xl font-bold text-slate-800" id="stat-ready">0</div>
+                                <div class="text-xs text-slate-500 font-medium">Ta'mir tayyor</div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                            <div class="flex items-center justify-between text-teal-600 mb-2">
+                                <div class="w-8 h-8 rounded-xl bg-teal-50 flex items-center justify-center"><i class="fa-solid fa-handshake text-sm"></i></div>
+                            </div>
+                            <div>
+                                <div class="text-2xl font-bold text-slate-800" id="stat-delivered">0</div>
+                                <div class="text-xs text-slate-500 font-medium">Topshirilgan</div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                            <div class="flex items-center justify-between text-emerald-600 mb-2">
+                                <div class="w-8 h-8 rounded-xl bg-emerald-50 flex items-center justify-center"><i class="fa-solid fa-wallet text-sm"></i></div>
+                            </div>
+                            <div>
+                                <div class="text-lg font-bold text-slate-800" id="stat-total-revenue">0 so'm</div>
+                                <div class="text-xs text-slate-500 font-medium">Jami tushum</div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                            <div class="flex items-center justify-between text-rose-600 mb-2">
+                                <div class="w-8 h-8 rounded-xl bg-rose-50 flex items-center justify-center"><i class="fa-solid fa-triangle-exclamation text-sm"></i></div>
+                            </div>
+                            <div>
+                                <div class="text-lg font-bold text-slate-800" id="stat-total-debt">0 so'm</div>
+                                <div class="text-xs text-slate-500 font-medium">To'lanmagan</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Action Buttons -->
+                    <div class="flex flex-wrap gap-3">
+                        <button onclick="switchTab('qurilma-qabul')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl text-xs font-semibold shadow transition flex items-center gap-2">
+                            <i class="fa-solid fa-plus-circle"></i> Yangi mijoz / qurilma
+                        </button>
+                        <button onclick="switchTab('qidiruv')" class="bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 px-4 py-2.5 rounded-xl text-xs font-semibold shadow-sm transition flex items-center gap-2">
+                            <i class="fa-solid fa-magnifying-glass"></i> Qidiruv
+                        </button>
+                        <button onclick="switchTab('barcha-tamirlar')" class="bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 px-4 py-2.5 rounded-xl text-xs font-semibold shadow-sm transition flex items-center gap-2">
+                            <i class="fa-solid fa-list"></i> Barcha ta'mirlar
+                        </button>
+                    </div>
+
+                    <!-- Dashboard Tables / Lists -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+                            <h3 class="text-sm font-bold text-slate-800 mb-4 flex items-center justify-between">
+                                <span>So'nggi ta'mirlar</span>
+                                <span class="text-xs font-normal text-slate-400">Oxirgi kiritilganlar</span>
+                            </h3>
+                            <div id="dash-recent-repairs" class="space-y-3">
+                                <div class="text-center py-8 text-slate-400 text-xs italic">Ma'lumotlar yo'q</div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+                            <h3 class="text-sm font-bold text-slate-800 mb-4 flex items-center justify-between">
+                                <span>Jarayondagi ta'mirlar</span>
+                                <span class="text-xs font-normal text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full font-medium" id="badge-in-repair-count">0 ta</span>
+                            </h3>
+                            <div id="dash-in-progress" class="space-y-3">
+                                <div class="text-center py-8 text-slate-400 text-xs italic">Ma'lumotlar yo'q</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+                        <h3 class="text-sm font-bold text-slate-800 mb-4 flex items-center justify-between">
+                            <span>Mijozga topshirishga tayyor</span>
+                            <span class="text-xs font-normal text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full font-medium" id="badge-ready-count">0 ta</span>
+                        </h3>
+                        <div id="dash-ready-list" class="space-y-3">
+                            <div class="text-center py-8 text-slate-400 text-xs italic">Ma'lumotlar yo'q</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. QURILMA QABUL QILISH -->
+                <div id="tab-qurilma-qabul" class="tab-content hidden space-y-6">
+                    <form id="receptionForm" onsubmit="saveRepair(event)" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        
+                        <!-- Mijoz ma'lumotlari -->
+                        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+                            <h3 class="text-sm font-bold text-blue-700 flex items-center gap-2 border-b border-slate-100 pb-3">
+                                <i class="fa-solid fa-user"></i> Mijoz ma'lumotlari
+                            </h3>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1.5">Mavjud mijoz</label>
+                                <select id="selectExistingClient" onchange="fillClientData(this.value)" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs bg-slate-50 focus:border-blue-600 outline-none">
+                                    <option value="">— Yangi mijoz —</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1.5">To'liq ismi *</label>
+                                <input type="text" id="clientName" required placeholder="F.I.O" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:border-blue-600 outline-none">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1.5">Telefon *</label>
+                                <input type="text" id="clientPhone" required placeholder="+998 90 123-45-67" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:border-blue-600 outline-none">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1.5">Qo'shimcha telefon</label>
+                                <input type="text" id="clientExtraPhone" placeholder="+998 ..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:border-blue-600 outline-none">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1.5">Izoh</label>
+                                <textarea id="clientNote" rows="2" placeholder="Qo'shimcha ma'lumot..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:border-blue-600 outline-none"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Qurilma ma'lumotlari -->
+                        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+                            <h3 class="text-sm font-bold text-blue-700 flex items-center gap-2 border-b border-slate-100 pb-3">
+                                <i class="fa-solid fa-laptop"></i> Qurilma ma'lumotlari
+                            </h3>
+
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">Turi *</label>
+                                    <select id="devType" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs bg-slate-50 focus:border-blue-600 outline-none">
+                                        <option value="Noutbuk">Noutbuk</option>
+                                        <option value="Kompyuter">Kompyuter</option>
+                                        <option value="Printer">Printer</option>
+                                        <option value="Boshqa">Boshqa</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">Nomi *</label>
+                                    <input type="text" id="devName" required placeholder="ASUS VivoBook" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:border-blue-600 outline-none">
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">Brend</label>
+                                    <input type="text" id="devBrand" placeholder="ASUS, HP, Acer..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:border-blue-600 outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">Model</label>
+                                    <input type="text" id="devModel" placeholder="X515EA" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:border-blue-600 outline-none">
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">Seriya raqami</label>
+                                    <input type="text" id="devSerial" placeholder="SN-98765432" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:border-blue-600 outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">Tashqi holati</label>
+                                    <input type="text" id="devCondition" placeholder="Yaxshi, tirnalgan..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:border-blue-600 outline-none">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1.5">Komponentlar / Ichki qismlar</label>
+                                <input type="text" id="devComponents" placeholder="Windows 11, Intel Core i5, 16 GB RAM..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:border-blue-600 outline-none">
+                            </div>
+                        </div>
+
+                        <!-- Qabul ma'lumotlari -->
+                        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+                            <h3 class="text-sm font-bold text-blue-700 flex items-center gap-2 border-b border-slate-100 pb-3">
+                                <i class="fa-solid fa-clipboard-check"></i> Qabul ma'lumotlari
+                            </h3>
+
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">Sana</label>
+                                    <input type="date" id="recDate" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs bg-slate-50 focus:border-blue-600 outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">Vaqt</label>
+                                    <input type="time" id="recTime" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs bg-slate-50 focus:border-blue-600 outline-none">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1.5">Qabul qilgan xodim *</label>
+                                <select id="recStaff" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs bg-slate-50 focus:border-blue-600 outline-none">
+                                    <option value="">— Xodimni tanlang —</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1.5">Muammo (Mijoz shikoyati)</label>
+                                <textarea id="recProblem" rows="2" placeholder="Yoqilmayapti, sekin ishlayapti..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:border-blue-600 outline-none"></textarea>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1.5">Dastlabki diagnostika</label>
+                                <input type="text" id="recDiag" placeholder="Qisqa xulosa..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:border-blue-600 outline-none">
+                            </div>
+                        </div>
+
+                        <!-- Xizmatlar va Detallar tanlovi -->
+                        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+                            <h3 class="text-sm font-bold text-blue-700 flex items-center gap-2 border-b border-slate-100 pb-3">
+                                <i class="fa-solid fa-list-check"></i> Xizmatlar va qo'shimcha detallar
+                            </h3>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-2">Xizmatlarni tanlang</label>
+                                <div id="servicesCheckboxList" class="space-y-2 max-h-48 overflow-y-auto pr-2">
+                                    <!-- Dynamic populated services checkboxes -->
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-2">Qo'shimcha detallar (Katalogdan)</label>
+                                <div id="partsCheckboxList" class="space-y-2 max-h-48 overflow-y-auto pr-2">
+                                    <!-- Dynamic populated parts checkboxes -->
+                                </div>
+                            </div>
+
+                            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 flex items-center justify-between mt-4">
+                                <span class="text-xs font-bold text-slate-700 uppercase">Hisoblangan Umumiy Summa:</span>
+                                <span class="text-lg font-bold text-blue-700" id="calcTotalDisplay">0 so'm</span>
+                            </div>
+                        </div>
+
+                        <div class="lg:col-span-2 flex items-center justify-end gap-3 pt-2 pb-6">
+                            <button type="button" onclick="switchTab('bosh-sahifa')" class="px-6 py-3 rounded-xl border border-slate-300 text-xs font-semibold text-slate-600 hover:bg-slate-100 transition">Bekor qilish</button>
+                            <button type="submit" class="px-8 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-lg shadow-blue-600/20 transition flex items-center gap-2">
+                                <i class="fa-solid fa-floppy-disk"></i> Saqlash va Qabul qilish
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- 3. BARCHA TA'MIRLAR -->
+                <div id="tab-barcha-tamirlar" class="tab-content hidden space-y-6">
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-4">
+                        <div class="flex flex-wrap items-center justify-between gap-3">
+                            <div class="flex items-center gap-3 flex-1 min-w-[280px]">
+                                <input type="text" id="filterRepInput" oninput="renderRepairsTable()" placeholder="Ism, telefon, model bo'yicha qidirish..." class="w-full px-4 py-2 text-xs rounded-xl border border-slate-300 focus:border-blue-600 outline-none">
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <select id="filterStatusSelect" onchange="renderRepairsTable()" class="px-4 py-2 text-xs rounded-xl border border-slate-300 bg-white focus:border-blue-600 outline-none">
+                                    <option value="">Barcha holatlar</option>
+                                    <option value="Ta'mirlanmoqda">Ta'mirlanmoqda</option>
+                                    <option value="Ta'mir tayyor">Ta'mir tayyor</option>
+                                    <option value="Topshirilgan">Topshirilgan</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse text-xs">
+                                <thead>
+                                    <tr class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider border-b border-slate-200">
+                                        <th class="p-3.5">№</th>
+                                        <th class="p-3.5">Ta'mir №</th>
+                                        <th class="p-3.5">Mijoz</th>
+                                        <th class="p-3.5">Telefon</th>
+                                        <th class="p-3.5">Qurilma</th>
+                                        <th class="p-3.5">Sana</th>
+                                        <th class="p-3.5">Xizmatlar</th>
+                                        <th class="p-3.5">Umumiy</th>
+                                        <th class="p-3.5">To'langan</th>
+                                        <th class="p-3.5">Qarz</th>
+                                        <th class="p-3.5">Holat</th>
+                                        <th class="p-3.5 text-right">Harakat</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="repairsTableBody" class="divide-y divide-slate-100">
+                                    <tr>
+                                        <td colspan="12" class="text-center py-8 text-slate-400 italic">Ta'mirlar yo'q</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. MIJOZLAR -->
+                <div id="tab-mijozlar" class="tab-content hidden space-y-6">
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-4">
+                        <div class="flex items-center justify-between">
+                            <input type="text" id="filterClientInput" oninput="renderClientsTable()" placeholder="Ism yoki telefon..." class="w-72 px-4 py-2 text-xs rounded-xl border border-slate-300 focus:border-blue-600 outline-none">
+                        </div>
+
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse text-xs">
+                                <thead>
+                                    <tr class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider border-b border-slate-200">
+                                        <th class="p-3.5">№</th>
+                                        <th class="p-3.5">Ism F.I.O</th>
+                                        <th class="p-3.5">Telefon</th>
+                                        <th class="p-3.5">Qo'shimcha tel</th>
+                                        <th class="p-3.5">Qo'shilgan sana</th>
+                                        <th class="p-3.5">Qurilmalar soni</th>
+                                        <th class="p-3.5 text-right">Harakat</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="clientsTableBody" class="divide-y divide-slate-100">
+                                    <tr>
+                                        <td colspan="7" class="text-center py-8 text-slate-400 italic">Mijozlar yo'q</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 5. QIDIRUV -->
+                <div id="tab-qidiruv" class="tab-content hidden space-y-6">
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                            <input type="text" id="searchKeyword" placeholder="Ism, tel, model, seriya raqam..." class="px-4 py-2.5 text-xs rounded-xl border border-slate-300 focus:border-blue-600 outline-none">
+                            <select id="searchStatus" class="px-4 py-2.5 text-xs rounded-xl border border-slate-300 bg-white focus:border-blue-600 outline-none">
+                                <option value="">Barcha holatlar</option>
+                                <option value="Ta'mirlanmoqda">Ta'mirlanmoqda</option>
+                                <option value="Ta'mir tayyor">Ta'mir tayyor</option>
+                                <option value="Topshirilgan">Topshirilgan</option>
+                            </select>
+                            <input type="date" id="searchDateFrom" class="px-4 py-2.5 text-xs rounded-xl border border-slate-300 focus:border-blue-600 outline-none">
+                            <button onclick="executeAdvancedSearch()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2.5 rounded-xl text-xs shadow transition flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-magnifying-glass"></i> Qidirish
+                            </button>
+                        </div>
+
+                        <div id="searchResultsContainer" class="pt-4 space-y-3">
+                            <div class="text-center py-12 text-slate-400 text-xs italic">Qidirish uchun ma'lumot kiriting va qidirish tugmasini bosing</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 6. XIZMATLAR VA NARXLAR -->
+                <div id="tab-xizmatlar" class="tab-content hidden space-y-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm p-5 overflow-x-auto">
+                            <h3 class="text-sm font-bold text-slate-800 mb-4">Mavjud xizmatlar ro'yxati</h3>
+                            <table class="w-full text-left border-collapse text-xs">
+                                <thead>
+                                    <tr class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider border-b border-slate-200">
+                                        <th class="p-3">Xizmat</th>
+                                        <th class="p-3">Min</th>
+                                        <th class="p-3">Max</th>
+                                        <th class="p-3">Standart</th>
+                                        <th class="p-3">Holat</th>
+                                        <th class="p-3 text-right admin-only-col">Tahrir</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="servicesTableBody" class="divide-y divide-slate-100">
+                                    <!-- Dynamic -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-4 h-fit admin-only-block" id="addServiceBox">
+                            <h3 class="text-sm font-bold text-slate-800 border-b border-slate-100 pb-3">Yangi xizmat qo'shish</h3>
+                            <form onsubmit="addNewService(event)" class="space-y-3">
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-600 mb-1">Nomi *</label>
+                                    <input type="text" id="newServName" required placeholder="Xizmat nomi" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 outline-none focus:border-blue-600">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-600 mb-1">Min narx</label>
+                                    <input type="number" id="newServMin" required placeholder="50000" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 outline-none focus:border-blue-600">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-600 mb-1">Max narx</label>
+                                    <input type="number" id="newServMax" required placeholder="100000" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 outline-none focus:border-blue-600">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-600 mb-1">Standart narx</label>
+                                    <input type="number" id="newServStd" required placeholder="70000" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 outline-none focus:border-blue-600">
+                                </div>
+                                <button type="submit" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl text-xs shadow transition">Qo'shish</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 7. DETALLAR KATALOGI -->
+                <div id="tab-detallar" class="tab-content hidden space-y-6">
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-4">
+                        <div class="flex flex-wrap items-center justify-between gap-3">
+                            <div class="flex flex-wrap gap-2" id="partsCategoryTabs">
+                                <button onclick="filterPartsCategory('Barchasi')" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-blue-600 text-white transition category-btn" data-cat="Barchasi">Barchasi</button>
+                                <button onclick="filterPartsCategory('SSD')" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 transition category-btn" data-cat="SSD">SSD</button>
+                                <button onclick="filterPartsCategory('RAM')" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 transition category-btn" data-cat="RAM">RAM</button>
+                                <button onclick="filterPartsCategory('Batareya')" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 transition category-btn" data-cat="Batareya">Batareya</button>
+                                <button onclick="filterPartsCategory('Protsessor')" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 transition category-btn" data-cat="Protsessor">Protsessor</button>
+                                <button onclick="filterPartsCategory('Klaviatura')" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 transition category-btn" data-cat="Klaviatura">Klaviatura</button>
+                                <button onclick="filterPartsCategory('Kabel')" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 transition category-btn" data-cat="Kabel">Kabel</button>
+                            </div>
+
+                            <button onclick="loadStandardCatalog()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-4 py-2 rounded-xl text-xs shadow transition flex items-center gap-2 admin-only-block" id="loadStdCatalogBtn">
+                                <i class="fa-solid fa-cloud-arrow-down"></i> Standart katalogni yuklash
+                            </button>
+                        </div>
+
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-4">
+                            <div class="lg:col-span-2 overflow-x-auto" id="partsTableContainer">
+                                <table class="w-full text-left border-collapse text-xs">
+                                    <thead>
+                                        <tr class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider border-b border-slate-200">
+                                            <th class="p-3">Nomi</th>
+                                            <th class="p-3">Brend</th>
+                                            <th class="p-3">Kategoriya</th>
+                                            <th class="p-3">Narx</th>
+                                            <th class="p-3 text-right admin-only-col">Harakat</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="partsTableBody" class="divide-y divide-slate-100">
+                                        <!-- Dynamic -->
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="bg-slate-50 rounded-2xl border border-slate-200 p-5 space-y-4 h-fit admin-only-block" id="addPartBox">
+                                <h3 class="text-sm font-bold text-slate-800 border-b border-slate-200 pb-3">Yangi detal qo'shish (Faqat Admin)</h3>
+                                <form onsubmit="addNewPart(event)" class="space-y-3">
+                                    <div>
+                                        <label class="block text-xs font-semibold text-slate-600 mb-1">Nomi *</label>
+                                        <input type="text" id="newPartName" required placeholder="SSD 512GB" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 outline-none focus:border-blue-600 bg-white">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-semibold text-slate-600 mb-1">Brend</label>
+                                        <input type="text" id="newPartBrand" placeholder="Kingston, Samsung" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 outline-none focus:border-blue-600 bg-white">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-semibold text-slate-600 mb-1">Kategoriya</label>
+                                        <select id="newPartCat" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 outline-none focus:border-blue-600 bg-white">
+                                            <option value="SSD">SSD</option>
+                                            <option value="RAM">RAM</option>
+                                            <option value="Batareya">Batareya</option>
+                                            <option value="Protsessor">Protsessor</option>
+                                            <option value="Klaviatura">Klaviatura</option>
+                                            <option value="Kabel">Kabel</option>
+                                            <option value="Boshqa">Boshqa</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-semibold text-slate-600 mb-1">Narxi (so'm)</label>
+                                        <input type="number" id="newPartPrice" required placeholder="250000" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 outline-none focus:border-blue-600 bg-white">
+                                    </div>
+                                    <button type="submit" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl text-xs shadow transition">Detallarga qo'shish</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 8. HISOBOTLAR -->
+                <div id="tab-hisobotlar" class="tab-content hidden space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                            <div class="text-slate-500 text-xs font-medium mb-1">Jami ta'mirlar</div>
+                            <div class="text-3xl font-bold text-slate-800" id="rep-total">0</div>
+                        </div>
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                            <div class="text-slate-500 text-xs font-medium mb-1">Yakunlangan</div>
+                            <div class="text-3xl font-bold text-emerald-600" id="rep-finished">0</div>
+                        </div>
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                            <div class="text-slate-500 text-xs font-medium mb-1">Jarayonda</div>
+                            <div class="text-3xl font-bold text-amber-600" id="rep-inproc">0</div>
+                        </div>
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                            <div class="text-slate-500 text-xs font-medium mb-1">Jami tushum</div>
+                            <div class="text-2xl font-bold text-blue-600" id="rep-rev">0 so'm</div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 max-w-xl space-y-4">
+                        <h3 class="text-sm font-bold text-slate-800 border-b border-slate-100 pb-3">Moliyaviy taqsimot</h3>
+                        <div class="space-y-3 text-xs">
+                            <div class="flex justify-between py-1 border-b border-slate-50">
+                                <span class="text-slate-600">Xizmatlar daromadi:</span>
+                                <span class="font-bold text-slate-800" id="rep-services-rev">0 so'm</span>
+                            </div>
+                            <div class="flex justify-between py-1 border-b border-slate-50">
+                                <span class="text-slate-600">Detallar daromadi:</span>
+                                <span class="font-bold text-slate-800" id="rep-parts-rev">0 so'm</span>
+                            </div>
+                            <div class="flex justify-between py-1 border-b border-slate-50">
+                                <span class="text-slate-600">Yig'ilgan to'lovlar:</span>
+                                <span class="font-bold text-emerald-600" id="rep-paid-rev">0 so'm</span>
+                            </div>
+                            <div class="flex justify-between py-1">
+                                <span class="text-slate-600 font-semibold">Qolgan qarzdorliklar:</span>
+                                <span class="font-bold text-rose-600" id="rep-debt-rev">0 so'm</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 9. XODIMLAR -->
+                <div id="tab-xodimlar" class="tab-content hidden space-y-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm p-5 overflow-x-auto">
+                            <h3 class="text-sm font-bold text-slate-800 mb-4">Xodimlar va foydalanuvchilar ro'yxati</h3>
+                            <table class="w-full text-left border-collapse text-xs">
+                                <thead>
+                                    <tr class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider border-b border-slate-200">
+                                        <th class="p-3">Ism</th>
+                                        <th class="p-3">Login</th>
+                                        <th class="p-3">Rol</th>
+                                        <th class="p-3">Telefon</th>
+                                        <th class="p-3 text-right">Harakat</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="staffTableBody" class="divide-y divide-slate-100">
+                                    <!-- Dynamic -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-4 h-fit">
+                            <h3 class="text-sm font-bold text-slate-800 border-b border-slate-100 pb-3">Yangi xodim / foydalanuvchi qo'shish</h3>
+                            <form onsubmit="addNewStaff(event)" class="space-y-3">
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-600 mb-1">To'liq ism *</label>
+                                    <input type="text" id="newStaffName" required placeholder="Kamronbek" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 outline-none focus:border-blue-600">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-600 mb-1">Login *</label>
+                                    <input type="text" id="newStaffUsername" required placeholder="kamron" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 outline-none focus:border-blue-600">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-600 mb-1">Parol *</label>
+                                    <input type="password" id="newStaffPass" required placeholder="usta123" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 outline-none focus:border-blue-600">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-600 mb-1">Roli</label>
+                                    <select id="newStaffRole" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 outline-none focus:border-blue-600 bg-white">
+                                        <option value="usta">Usta</option>
+                                        <option value="admin">Administrator</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-600 mb-1">Telefon</label>
+                                    <input type="text" id="newStaffPhone" placeholder="+998 90 ..." class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 outline-none focus:border-blue-600">
+                                </div>
+                                <button type="submit" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl text-xs shadow transition">Foydalanuvchi qo'shish</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 10. SOZLAMALAR -->
+                <div id="tab-sozlamalar" class="tab-content hidden space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+                            <h3 class="text-sm font-bold text-slate-800 border-b border-slate-100 pb-3">Profil va Login ma'lumotlarini o'zgartirish</h3>
+                            <form onsubmit="updateAdminCredentials(event)" class="space-y-3 text-xs">
+                                <div>
+                                    <label class="block font-semibold text-slate-600 mb-1">Joriy foydalanuvchi (Login)</label>
+                                    <input type="text" id="settingsUsername" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 outline-none bg-slate-50 font-bold" readonly>
+                                </div>
+                                <div>
+                                    <label class="block font-semibold text-slate-600 mb-1">Yangi login nomi</label>
+                                    <input type="text" id="settingsNewUsername" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 outline-none">
+                                </div>
+                                <div>
+                                    <label class="block font-semibold text-slate-600 mb-1">Yangi parol</label>
+                                    <input type="password" id="settingsNewPassword" placeholder="Yangi parolni kiriting..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 outline-none">
+                                </div>
+                                <button type="submit" class="px-5 py-2.5 bg-blue-600 text-white rounded-xl font-semibold shadow">Ma'lumotlarni yangilash</button>
+                            </form>
+                        </div>
+
+                        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+                            <h3 class="text-sm font-bold text-slate-800 border-b border-slate-100 pb-3">Servis sozlamalari</h3>
+                            <div class="space-y-3 text-xs">
+                                <div>
+                                    <label class="block font-semibold text-slate-600 mb-1">Servis nomi</label>
+                                    <input type="text" value="YAQIN SERVIS" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 outline-none">
+                                </div>
+                                <div>
+                                    <label class="block font-semibold text-slate-600 mb-1">Asosiy telefonlar</label>
+                                    <input type="text" value="+998 (91) 122-06-65, +998 (95) 540-71-88" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 outline-none">
+                                </div>
+                                <div>
+                                    <label class="block font-semibold text-slate-600 mb-1">Telegram manzillar</label>
+                                    <input type="text" value="@Kamronbe9, @Yaqin_Servis" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 outline-none">
+                                </div>
+                                <button onclick="showToast('Sozlamalar saqlandi!')" class="px-5 py-2.5 bg-blue-600 text-white rounded-xl font-semibold shadow">Saqlash</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 11. ZAXIRA YUKLASH -->
+                <div id="tab-zaxira" class="tab-content hidden space-y-6">
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 max-w-xl space-y-4">
+                        <h3 class="text-sm font-bold text-slate-800 border-b border-slate-100 pb-3">Ma'lumotlar zaxirasi (Backup)</h3>
+                        <p class="text-xs text-slate-500">Barcha ma'lumotlarni JSON formatida yuklab olish yoki tiklash.</p>
+                        <div class="flex gap-3">
+                            <button onclick="exportBackup()" class="px-4 py-2.5 bg-blue-600 text-white rounded-xl text-xs font-semibold shadow">Zaxirani yuklab olish</button>
+                            <button onclick="clearAllData()" class="px-4 py-2.5 bg-rose-600 text-white rounded-xl text-xs font-semibold shadow">Barchasini tozalash</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- EDIT / PAYMENT / DETAIL MODAL -->
+    <div id="modalContainer" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm hidden p-4">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden border border-slate-100" id="modalContentBox">
+            <!-- Modal content dynamically injected -->
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 bg-slate-900 text-white px-5 py-3 rounded-xl shadow-xl text-xs font-medium transform translate-y-20 opacity-0 transition-all duration-300 flex items-center gap-3">
+        <i class="fa-solid fa-circle-check text-emerald-400"></i>
+        <span id="toastMsg">Amaliyot bajarildi!</span>
+    </div>
+
+    <!-- JAVASCRIPT APP LOGIC -->
+    <script>
+        // --- DATABASE & STATE ---
+        let currentUser = null;
+
+        let servicesData = JSON.parse(localStorage.getItem('yaqin_services') || JSON.stringify([
+            { id: 1, name: "Windows o'rnatish", min: 50000, max: 100000, std: 70000, active: true },
+            { id: 2, name: "Dasturlar/driverlar o'rnatish", min: 30000, max: 70000, std: 40000, active: true },
+            { id: 3, name: "Kompyuter tozalash", min: 70000, max: 150000, std: 100000, active: true },
+            { id: 4, name: "Termopasta almashtirish", min: 50000, max: 100000, std: 70000, active: true },
+            { id: 5, name: "SSD/RAM o'rnatish", min: 30000, max: 70000, std: 50000, active: true },
+            { id: 6, name: "Kompyuter diagnostikasi", min: 20000, max: 50000, std: 30000, active: true },
+            { id: 7, name: "Printer sozlash", min: 50000, max: 100000, std: 70000, active: true },
+            { id: 8, name: "Uyga borib xizmat qilish", min: 50000, max: 100000, std: 70000, active: true }
+        ]));
+
+        let partsData = JSON.parse(localStorage.getItem('yaqin_parts') || JSON.stringify([
+            { id: 1, name: "SSD 240GB SATA", brand: "Kingston", category: "SSD", price: 220000 },
+            { id: 2, name: "SSD 256GB SATA", brand: "Samsung", category: "SSD", price: 250000 },
+            { id: 3, name: "SSD 480GB SATA", brand: "Kingston", category: "SSD", price: 350000 },
+            { id: 4, name: "SSD 500GB SATA", brand: "Samsung", category: "SSD", price: 380000 },
+            { id: 5, name: "SSD 1TB SATA", brand: "Kingston", category: "SSD", price: 650000 },
+            { id: 6, name: "SSD 256GB M.2 NVMe", brand: "Kingston", category: "SSD", price: 280000 },
+            { id: 7, name: "SSD 512GB M.2 NVMe", brand: "Samsung", category: "SSD", price: 450000 },
+            { id: 8, name: "RAM 8GB DDR4", brand: "Crucial", category: "RAM", price: 240000 },
+            { id: 9, name: "RAM 16GB DDR4", brand: "Kingston", category: "RAM", price: 460000 },
+            { id: 10, name: "Batareya ASUS X515", brand: "OEM", category: "Batareya", price: 320000 },
+            { id: 11, name: "Klaviatura HP Pavilion", brand: "OEM", category: "Klaviatura", price: 180000 }
+        ]));
+
+        let staffData = JSON.parse(localStorage.getItem('yaqin_staff') || JSON.stringify([
+            { id: 1, name: "Admin", username: "admin", pass: "admin123", role: "admin", phone: "+998 95 540-71-88", active: true },
+            { id: 2, name: "Kamronbek Usta", username: "kamron", pass: "usta123", role: "usta", phone: "+998 91 122-06-65", active: true }
+        ]));
+
+        let repairs = JSON.parse(localStorage.getItem('yaqin_repairs') || '[]');
+        let clients = JSON.parse(localStorage.getItem('yaqin_clients') || '[]');
+
+        // --- AUTHENTICATION ---
+        function handleLogin(e) {
+            e.preventDefault();
+            const uname = document.getElementById('loginUsername').value.trim().toLowerCase();
+            const pass = document.getElementById('loginPass').value;
+
+            const user = staffData.find(s => s.username.toLowerCase() === uname && s.pass === pass);
+            
+            if (!user) {
+                showToast("Login yoki parol noto'g'ri!", "error");
+                return;
+            }
+
+            currentUser = user;
+
+            document.getElementById('userNameDisp').innerText = currentUser.name;
+            document.getElementById('userRoleDisp').innerText = currentUser.role === 'admin' ? 'Administrator' : 'Usta';
+            document.getElementById('userAvatar').innerText = currentUser.name.charAt(0).toUpperCase();
+
+            // Apply role restriction
+            if (currentUser.role === 'usta') {
+                document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
+                document.querySelectorAll('.admin-only-block').forEach(el => el.style.display = 'none');
+                document.querySelectorAll('.admin-only-col').forEach(el => el.style.display = 'none');
+            } else {
+                document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'flex');
+                document.querySelectorAll('.admin-only-block').forEach(el => el.style.display = 'block');
+                document.querySelectorAll('.admin-only-col').forEach(el => el.style.display = 'table-cell');
+            }
+
+            document.getElementById('loginView').classList.add('hidden');
+            document.getElementById('mainApp').classList.remove('hidden');
+            
+            // Init date/time in reception form
+            const today = new Date().toISOString().split('T')[0];
+            const timeNow = new Date().toTimeString().substring(0,5);
+            document.getElementById('recDate').value = today;
+            document.getElementById('recTime').value = timeNow;
+            document.getElementById('settingsUsername').value = currentUser.username;
+            document.getElementById('settingsNewUsername').value = currentUser.username;
+
+            refreshAllData();
+            showToast(`Xush kelibsiz, ${currentUser.name}!`);
+        }
+
+        function logout() {
+            currentUser = null;
+            document.getElementById('mainApp').classList.add('hidden');
+            document.getElementById('loginView').classList.remove('hidden');
+            document.getElementById('loginPass').value = '';
+            document.getElementById('loginUsername').value = '';
+        }
+
+        function updateAdminCredentials(e) {
+            e.preventDefault();
+            const newUname = document.getElementById('settingsNewUsername').value.trim().toLowerCase();
+            const newPass = document.getElementById('settingsNewPassword').value;
+
+            const st = staffData.find(s => s.id === currentUser.id);
+            if (st) {
+                st.username = newUname;
+                if (newPass) st.pass = newPass;
+                currentUser = st;
+                localStorage.setItem('yaqin_staff', JSON.stringify(staffData));
+                showToast("Login va parol muvaffaqiyatli yangilandi!");
+                document.getElementById('settingsNewPassword').value = '';
+            }
+        }
+
+        // --- NAVIGATION ---
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('bg-blue-50', 'text-blue-600', 'font-bold'));
+            
+            const targetTab = document.getElementById(`tab-${tabId}`);
+            if (targetTab) targetTab.classList.remove('hidden');
+
+            const navBtn = document.getElementById(`nav-${tabId}`);
+            if (navBtn) {
+                navBtn.classList.add('bg-blue-50', 'text-blue-600', 'font-bold');
+            }
+
+            const titles = {
+                'bosh-sahifa': "Bosh sahifa",
+                'qurilma-qabul': "Qurilma qabul qilish",
+                'barcha-tamirlar': "Barcha ta'mirlar",
+                'mijozlar': "Mijozlar",
+                'qidiruv': "Qidiruv",
+                'xizmatlar': "Xizmatlar va narxlar",
+                'detallar': "Detallar katalogi",
+                'hisobotlar': "Hisobotlar",
+                'xodimlar': "Xodimlar",
+                'sozlamalar': "Sozlamalar",
+                'zaxira': "Zaxira yuklash"
+            };
+            document.getElementById('currentTitle').innerText = titles[tabId] || "Bosh sahifa";
+
+            refreshAllData();
+        }
+
+        // --- REFRESH DATA & METRICS ---
+        function refreshAllData() {
+            localStorage.setItem('yaqin_repairs', JSON.stringify(repairs));
+            localStorage.setItem('yaqin_clients', JSON.stringify(clients));
+            localStorage.setItem('yaqin_services', JSON.stringify(servicesData));
+            localStorage.setItem('yaqin_parts', JSON.stringify(partsData));
+            localStorage.setItem('yaqin_staff', JSON.stringify(staffData));
+
+            // Metrics
+            const totalClients = clients.length;
+            const totalDevices = repairs.length;
+            const inRepair = repairs.filter(r => r.status === "Ta'mirlanmoqda").length;
+            const ready = repairs.filter(r => r.status === "Ta'mir tayyor").length;
+            const delivered = repairs.filter(r => r.status === "Topshirilgan").length;
+            
+            let totalRev = 0;
+            let totalDebt = 0;
+            repairs.forEach(r => {
+                totalRev += (Number(r.paidSum) || 0);
+                totalDebt += (Number(r.debtSum) || 0);
+            });
+
+            document.getElementById('stat-total-clients').innerText = totalClients;
+            document.getElementById('stat-total-devices').innerText = totalDevices;
+            document.getElementById('stat-in-repair').innerText = inRepair;
+            document.getElementById('stat-ready').innerText = ready;
+            document.getElementById('stat-delivered').innerText = delivered;
+            document.getElementById('stat-total-revenue').innerText = formatMoney(totalRev) + " so'm";
+            document.getElementById('stat-total-debt').innerText = formatMoney(totalDebt) + " so'm";
+
+            document.getElementById('badge-in-repair-count').innerText = inRepair + " ta";
+            document.getElementById('badge-ready-count').innerText = ready + " ta";
+
+            // Dashboard Lists
+            renderDashboardLists();
+            renderRepairsTable();
+            renderClientsTable();
+            renderServicesTable();
+            renderPartsTable();
+            renderStaffTable();
+            renderReceptionCheckboxes();
+            renderClientDropdown();
+            renderStaffDropdown();
+            renderReportsData();
+        }
+
+        function formatMoney(num) {
+            return Number(num).toLocaleString('uz-UZ');
+        }
+
+        // --- DASHBOARD LISTS ---
+        function renderDashboardLists() {
+            const recentContainer = document.getElementById('dash-recent-repairs');
+            const inProgContainer = document.getElementById('dash-in-progress');
+            const readyContainer = document.getElementById('dash-ready-list');
+
+            recentContainer.innerHTML = repairs.slice(-3).reverse().map(r => `
+                <div class="p-3 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between text-xs">
+                    <div>
+                        <div class="font-bold text-slate-800">${r.clientName} (${r.devName})</div>
+                        <div class="text-slate-400 text-[10px] mt-0.5">${r.date} • ${r.status}</div>
+                    </div>
+                    <span class="font-bold text-blue-600">${formatMoney(r.totalSum)} so'm</span>
+                </div>
+            `).join('') || '<div class="text-center py-6 text-slate-400 text-xs italic">Ma\'lumotlar yo\'q</div>';
+
+            const inProg = repairs.filter(r => r.status === "Ta'mirlanmoqda");
+            inProgContainer.innerHTML = inProg.map(r => `
+                <div class="p-3 rounded-xl bg-amber-50/50 border border-amber-100 flex items-center justify-between text-xs">
+                    <div>
+                        <div class="font-bold text-slate-800">${r.clientName}</div>
+                        <div class="text-slate-500 text-[10px]">${r.devName} — ${r.problem || 'Muammo ko\'rsatilmagan'}</div>
+                    </div>
+                    <span class="px-2.5 py-1 bg-amber-100 text-amber-700 font-semibold rounded-lg text-[10px]">Jarayonda</span>
+                </div>
+            `).join('') || '<div class="text-center py-6 text-slate-400 text-xs italic">Jarayonda qurilmalar yo\'q</div>';
+
+            const readyList = repairs.filter(r => r.status === "Ta'mir tayyor");
+            readyContainer.innerHTML = readyList.map(r => `
+                <div class="p-3 rounded-xl bg-emerald-50/50 border border-emerald-100 flex items-center justify-between text-xs">
+                    <div>
+                        <div class="font-bold text-slate-800">${r.clientName} (${r.devName})</div>
+                        <div class="text-slate-500 text-[10px]">Telefon: ${r.clientPhone} • Umumiy: ${formatMoney(r.totalSum)} so'm</div>
+                    </div>
+                    <button onclick="openExportModal('${r.id}')" class="px-3 py-1.5 bg-emerald-600 text-white rounded-lg font-semibold text-[10px] shadow">Chek / Export</button>
+                </div>
+            `).join('') || '<div class="text-center py-6 text-slate-400 text-xs italic">Tayyor qurilmalar yo\'q</div>';
+        }
+
+        // --- RECEPTION FORM DYNAMICS ---
+        function renderReceptionCheckboxes() {
+            const servContainer = document.getElementById('servicesCheckboxList');
+            servContainer.innerHTML = servicesData.filter(s => s.active).map(s => `
+                <label class="flex items-center justify-between p-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer text-xs">
+                    <div class="flex items-center gap-2.5">
+                        <input type="checkbox" name="selectedService" value="${s.id}" data-price="${s.std}" onchange="calculateReceptionTotal()" class="w-4 h-4 text-blue-600 rounded">
+                        <span class="font-medium text-slate-700">${s.name}</span>
+                    </div>
+                    <span class="text-blue-600 font-semibold">${formatMoney(s.std)} so'm</span>
+                </label>
+            `).join('');
+
+            const partsContainer = document.getElementById('partsCheckboxList');
+            partsContainer.innerHTML = partsData.map(p => `
+                <label class="flex items-center justify-between p-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer text-xs">
+                    <div class="flex items-center gap-2.5">
+                        <input type="checkbox" name="selectedPart" value="${p.id}" data-price="${p.price}" onchange="calculateReceptionTotal()" class="w-4 h-4 text-blue-600 rounded">
+                        <span class="font-medium text-slate-700">${p.name} <span class="text-slate-400">(${p.brand})</span></span>
+                    </div>
+                    <span class="text-emerald-600 font-semibold">${formatMoney(p.price)} so'm</span>
+                </label>
+            `).join('');
+        }
+
+        function renderClientDropdown() {
+            const sel = document.getElementById('selectExistingClient');
+            sel.innerHTML = '<option value="">— Yangi mijoz —</option>' + clients.map(c => `
+                <option value="${c.id}">${c.name} (${c.phone})</option>
+            `).join('');
+        }
+
+        function renderStaffDropdown() {
+            const sel = document.getElementById('recStaff');
+            sel.innerHTML = '<option value="">— Xodimni tanlang —</option>' + staffData.map(st => `
+                <option value="${st.name}">${st.name} (${st.role.toUpperCase()})</option>
+            `).join('');
+            if (currentUser) {
+                sel.value = currentUser.name;
+            }
+        }
+
+        function fillClientData(clientId) {
+            if (!clientId) {
+                document.getElementById('clientName').value = '';
+                document.getElementById('clientPhone').value = '';
+                document.getElementById('clientExtraPhone').value = '';
+                document.getElementById('clientNote').value = '';
+                return;
+            }
+            const c = clients.find(x => x.id == clientId);
+            if (c) {
+                document.getElementById('clientName').value = c.name;
+                document.getElementById('clientPhone').value = c.phone;
+                document.getElementById('clientExtraPhone').value = c.extraPhone || '';
+                document.getElementById('clientNote').value = c.note || '';
+            }
+        }
+
+        function calculateReceptionTotal() {
+            let total = 0;
+            document.querySelectorAll('input[name="selectedService"]:checked').forEach(el => {
+                total += Number(el.getAttribute('data-price')) || 0;
+            });
+            document.querySelectorAll('input[name="selectedPart"]:checked').forEach(el => {
+                total += Number(el.getAttribute('data-price')) || 0;
+            });
+            document.getElementById('calcTotalDisplay').innerText = formatMoney(total) + " so'm";
+            return total;
+        }
+
+        function saveRepair(e) {
+            e.preventDefault();
+            const name = document.getElementById('clientName').value;
+            const phone = document.getElementById('clientPhone').value;
+            const extraPhone = document.getElementById('clientExtraPhone').value;
+            const note = document.getElementById('clientNote').value;
+
+            // Check or create client
+            let client = clients.find(c => c.phone === phone);
+            if (!client) {
+                client = { id: Date.now(), name, phone, extraPhone, note, date: new Date().toLocaleDateString() };
+                clients.push(client);
+            }
+
+            const selectedServices = [];
+            document.querySelectorAll('input[name="selectedService"]:checked').forEach(el => {
+                const sId = el.value;
+                const sObj = servicesData.find(s => s.id == sId);
+                if (sObj) selectedServices.push(sObj.name);
+            });
+
+            const selectedParts = [];
+            document.querySelectorAll('input[name="selectedPart"]:checked').forEach(el => {
+                const pId = el.value;
+                const pObj = partsData.find(p => p.id == pId);
+                if (pObj) selectedParts.push(pObj.name);
+            });
+
+            const totalSum = calculateReceptionTotal();
+
+            const newRepair = {
+                id: 'TS-' + Math.floor(1000 + Math.random() * 9000),
+                clientId: client.id,
+                clientName: name,
+                clientPhone: phone,
+                devType: document.getElementById('devType').value,
+                devName: document.getElementById('devName').value,
+                devBrand: document.getElementById('devBrand').value,
+                devModel: document.getElementById('devModel').value,
+                serial: document.getElementById('devSerial').value,
+                condition: document.getElementById('devCondition').value,
+                components: document.getElementById('devComponents').value,
+                date: document.getElementById('recDate').value,
+                time: document.getElementById('recTime').value,
+                staff: document.getElementById('recStaff').value,
+                problem: document.getElementById('recProblem').value,
+                diag: document.getElementById('recDiag').value,
+                services: selectedServices,
+                parts: selectedParts,
+                totalSum: totalSum,
+                paidSum: 0,
+                debtSum: totalSum,
+                status: "Ta'mirlanmoqda"
+            };
+
+            repairs.push(newRepair);
+            refreshAllData();
+            document.getElementById('receptionForm').reset();
+            switchTab('barcha-tamirlar');
+            showToast("Qurilma muvaffaqiyatli qabul qilindi!");
+        }
+
+        // --- BARCHA TA'MIRLAR TABLE ---
+        function renderRepairsTable() {
+            const keyword = (document.getElementById('filterRepInput')?.value || '').toLowerCase();
+            const statusFilter = document.getElementById('filterStatusSelect')?.value || '';
+            const tbody = document.getElementById('repairsTableBody');
+
+            let filtered = repairs.filter(r => {
+                const matchKey = r.clientName.toLowerCase().includes(keyword) || r.clientPhone.toLowerCase().includes(keyword) || r.devName.toLowerCase().includes(keyword) || r.id.toLowerCase().includes(keyword);
+                const matchStatus = statusFilter ? r.status === statusFilter : true;
+                return matchKey && matchStatus;
+            });
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="12" class="text-center py-8 text-slate-400 italic">Ta'mirlanuvchilar topilmadi</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map((r, index) => `
+                <tr class="hover:bg-slate-50/80 transition">
+                    <td class="p-3.5 font-medium text-slate-500">${index + 1}</td>
+                    <td class="p-3.5 font-bold text-blue-600">${r.id}</td>
+                    <td class="p-3.5 font-semibold text-slate-800">${r.clientName}</td>
+                    <td class="p-3.5 text-slate-600">${r.clientPhone}</td>
+                    <td class="p-3.5 text-slate-700">${r.devName} (${r.devType})</td>
+                    <td class="p-3.5 text-slate-500">${r.date}</td>
+                    <td class="p-3.5 text-slate-600 max-w-xs truncate">${[...r.services, ...r.parts].join(', ') || '—'}</td>
+                    <td class="p-3.5 font-bold text-slate-800">${formatMoney(r.totalSum)} so'm</td>
+                    <td class="p-3.5 font-semibold text-emerald-600">${formatMoney(r.paidSum)} so'm</td>
+                    <td class="p-3.5 font-semibold text-rose-600">${formatMoney(r.debtSum)} so'm</td>
+                    <td class="p-3.5">
+                        <select onchange="updateRepairStatus('${r.id}', this.value)" class="px-2 py-1 rounded-lg text-[11px] font-semibold border border-slate-200 outline-none ${r.status === "Ta'mirlanmoqda" ? 'bg-amber-50 text-amber-700' : r.status === "Ta'mir tayyor" ? 'bg-emerald-50 text-emerald-700' : 'bg-teal-50 text-teal-700'}">
+                            <option value="Ta'mirlanmoqda" ${r.status === "Ta'mirlanmoqda" ? 'selected' : ''}>Ta'mirlanmoqda</option>
+                            <option value="Ta'mir tayyor" ${r.status === "Ta'mir tayyor" ? 'selected' : ''}>Ta'mir tayyor</option>
+                            <option value="Topshirilgan" ${r.status === "Topshirilgan" ? 'selected' : ''}>Topshirilgan</option>
+                        </select>
+                    </td>
+                    <td class="p-3.5 text-right space-x-1">
+                        <button onclick="openPaymentModal('${r.id}')" title="To'lov qilish" class="p-1.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded-lg transition"><i class="fa-solid fa-wallet"></i></button>
+                        <button onclick="openExportModal('${r.id}')" title="Chek PDF" class="p-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg transition"><i class="fa-solid fa-file-pdf"></i></button>
+                        ${currentUser.role === 'admin' ? `<button onclick="deleteRepair('${r.id}')" title="O'chirish" class="p-1.5 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-lg transition"><i class="fa-solid fa-trash"></i></button>` : ''}
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function updateRepairStatus(id, newStatus) {
+            const r = repairs.find(x => x.id === id);
+            if (r) {
+                r.status = newStatus;
+                refreshAllData();
+                showToast("Holat yangilandi!");
+            }
+        }
+
+        function deleteRepair(id) {
+            if (currentUser.role !== 'admin') {
+                showToast("Bu amalni faqat Admin bajarishi mumkin!", "error");
+                return;
+            }
+            if (confirm("Haqiqatan ham o'chirmoqchimisiz?")) {
+                repairs = repairs.filter(x => x.id !== id);
+                refreshAllData();
+                showToast("O'chirildi!");
+            }
+        }
+
+        // --- CLIENTS TABLE ---
+        function renderClientsTable() {
+            const keyword = (document.getElementById('filterClientInput')?.value || '').toLowerCase();
+            const tbody = document.getElementById('clientsTableBody');
+
+            let filtered = clients.filter(c => c.name.toLowerCase().includes(keyword) || c.phone.includes(keyword));
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-slate-400 italic">Mijozlar topilmadi</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map((c, i) => {
+                const devCount = repairs.filter(r => r.clientId == c.id).length;
+                return `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="p-3.5 text-slate-500">${i + 1}</td>
+                        <td class="p-3.5 font-bold text-slate-800">${c.name}</td>
+                        <td class="p-3.5 text-slate-600">${c.phone}</td>
+                        <td class="p-3.5 text-slate-500">${c.extraPhone || '—'}</td>
+                        <td class="p-3.5 text-slate-500">${c.date || '—'}</td>
+                        <td class="p-3.5"><span class="px-2 py-0.5 bg-blue-50 text-blue-700 font-semibold rounded-md">${devCount} ta</span></td>
+                        <td class="p-3.5 text-right">
+                            ${currentUser.role === 'admin' ? `<button onclick="deleteClient('${c.id}')" class="p-1.5 bg-rose-50 text-rose-600 rounded-lg"><i class="fa-solid fa-trash"></i></button>` : '—'}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function deleteClient(id) {
+            if (currentUser.role !== 'admin') return;
+            if (confirm("Mijozni o'chirmoqchimisiz?")) {
+                clients = clients.filter(c => c.id != id);
+                refreshAllData();
+                showToast("Mijoz o'chirildi!");
+            }
+        }
+
+        // --- ADVANCED SEARCH ---
+        function executeAdvancedSearch() {
+            const kw = (document.getElementById('searchKeyword').value || '').toLowerCase();
+            const status = document.getElementById('searchStatus').value;
+            const container = document.getElementById('searchResultsContainer');
+
+            let results = repairs.filter(r => {
+                const matchKw = r.clientName.toLowerCase().includes(kw) || r.clientPhone.toLowerCase().includes(kw) || r.devName.toLowerCase().includes(kw) || (r.serial && r.serial.toLowerCase().includes(kw)) || r.id.toLowerCase().includes(kw);
+                const matchSt = status ? r.status === status : true;
+                return matchKw && matchSt;
+            });
+
+            if (results.length === 0) {
+                container.innerHTML = `<div class="text-center py-8 text-slate-400 text-xs italic">Hech qanday ma'lumot topilmadi</div>`;
+                return;
+            }
+
+            container.innerHTML = results.map(r => `
+                <div class="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4 text-xs">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="font-bold text-blue-600 text-sm">${r.id}</span>
+                            <span class="px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-semibold">${r.status}</span>
+                        </div>
+                        <div class="font-bold text-slate-800 mt-1">${r.clientName} (${r.clientPhone})</div>
+                        <div class="text-slate-500 mt-0.5">Qurilma: <b>${r.devName}</b> | Muammo: ${r.problem || '—'}</div>
+                        <div class="text-slate-400 text-[10px] mt-1">Sana: ${r.date} ${r.time} • Xodim: ${r.staff}</div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="text-right">
+                            <div class="font-bold text-slate-800">${formatMoney(r.totalSum)} so'm</div>
+                            <div class="text-[10px] text-emerald-600 font-semibold">To'langan: ${formatMoney(r.paidSum)} so'm</div>
+                        </div>
+                        <button onclick="openExportModal('${r.id}')" class="px-4 py-2 bg-blue-600 text-white font-semibold rounded-xl shadow">Chek (PDF)</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // --- SERVICES & PARTS MANAGEMENT ---
+        function renderServicesTable() {
+            const tbody = document.getElementById('servicesTableBody');
+            tbody.innerHTML = servicesData.map(s => `
+                <tr>
+                    <td class="p-3 font-semibold text-slate-800">${s.name}</td>
+                    <td class="p-3 text-slate-600">${formatMoney(s.min)} so'm</td>
+                    <td class="p-3 text-slate-600">${formatMoney(s.max)} so'm</td>
+                    <td class="p-3 font-bold text-blue-600">${formatMoney(s.std)} so'm</td>
+                    <td class="p-3"><span class="text-emerald-600 font-semibold">Faol</span></td>
+                    <td class="p-3 text-right admin-only-col">
+                        ${currentUser.role === 'admin' ? `<button onclick="editServicePrice(${s.id})" class="text-blue-600 font-semibold hover:underline">Tahrir</button>` : '<span class="text-slate-400">Faqat ko\'rish</span>'}
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function addNewService(e) {
+            e.preventDefault();
+            if (currentUser.role !== 'admin') {
+                showToast("Faqat Admin xizmat qo'shishi mumkin!", "error");
+                return;
+            }
+            const name = document.getElementById('newServName').value;
+            const min = Number(document.getElementById('newServMin').value);
+            const max = Number(document.getElementById('newServMax').value);
+            const std = Number(document.getElementById('newServStd').value);
+
+            servicesData.push({ id: Date.now(), name, min, max, std, active: true });
+            refreshAllData();
+            e.target.reset();
+            showToast("Yangi xizmat qo'shildi!");
+        }
+
+        function editServicePrice(id) {
+            if (currentUser.role !== 'admin') return;
+            const s = servicesData.find(x => x.id == id);
+            if (!s) return;
+            const newStd = prompt(`"${s.name}" uchun standart narxni kiriting:`, s.std);
+            if (newStd !== null) {
+                s.std = Number(newStd) || s.std;
+                refreshAllData();
+                showToast("Narx yangilandi!");
+            }
+        }
+
+        let currentPartCat = 'Barchasi';
+        function filterPartsCategory(cat) {
+            currentPartCat = cat;
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                if (btn.getAttribute('data-cat') === cat) {
+                    btn.className = "px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-blue-600 text-white transition category-btn";
+                } else {
+                    btn.className = "px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 transition category-btn";
+                }
+            });
+            renderPartsTable();
+        }
+
+        function renderPartsTable() {
+            const tbody = document.getElementById('partsTableBody');
+            let filtered = currentPartCat === 'Barchasi' ? partsData : partsData.filter(p => p.category === currentPartCat);
+
+            tbody.innerHTML = filtered.map(p => `
+                <tr>
+                    <td class="p-3 font-semibold text-slate-800">${p.name}</td>
+                    <td class="p-3 text-slate-600">${p.brand}</td>
+                    <td class="p-3"><span class="px-2 py-0.5 rounded bg-slate-100 text-blue-700 font-semibold">${p.category}</span></td>
+                    <td class="p-3 font-bold text-slate-800">${formatMoney(p.price)} so'm</td>
+                    <td class="p-3 text-right space-x-1 admin-only-col">
+                        ${currentUser.role === 'admin' ? `
+                        <button onclick="editPartPrice(${p.id})" class="p-1.5 bg-blue-50 text-blue-600 rounded-lg"><i class="fa-solid fa-pen"></i></button>
+                        <button onclick="deletePart(${p.id})" class="p-1.5 bg-rose-50 text-rose-600 rounded-lg"><i class="fa-solid fa-trash"></i></button>
+                        ` : ''}
+                    </td>
+                </tr>
+            `).join('') || `<tr><td colspan="5" class="text-center py-6 text-slate-400 italic">Detallar yo'q</td></tr>`;
+
+            // Hide/show admin actions in parts table
+            document.querySelectorAll('.admin-only-col').forEach(el => {
+                el.style.display = currentUser.role === 'admin' ? (el.tagName === 'TH' ? 'table-cell' : 'table-cell') : 'none';
+            });
+            document.querySelectorAll('.admin-only-block').forEach(el => {
+                el.style.display = currentUser.role === 'admin' ? 'block' : 'none';
+            });
+        }
+
+        function addNewPart(e) {
+            e.preventDefault();
+            if (currentUser.role !== 'admin') {
+                showToast("Faqat Admin detal qo'shishi mumkin!", "error");
+                return;
+            }
+            const name = document.getElementById('newPartName').value;
+            const brand = document.getElementById('newPartBrand').value || 'Generic';
+            const category = document.getElementById('newPartCat').value;
+            const price = Number(document.getElementById('newPartPrice').value);
+
+            partsData.push({ id: Date.now(), name, brand, category, price });
+            refreshAllData();
+            e.target.reset();
+            showToast("Detal qo'shildi!");
+        }
+
+        function editPartPrice(id) {
+            if (currentUser.role !== 'admin') return;
+            const p = partsData.find(x => x.id == id);
+            if (!p) return;
+            const newP = prompt(`"${p.name}" narxini kiriting:`, p.price);
+            if (newP !== null) {
+                p.price = Number(newP) || p.price;
+                refreshAllData();
+                showToast("Detallar narxi yangilandi!");
+            }
+        }
+
+        function deletePart(id) {
+            if (currentUser.role !== 'admin') return;
+            partsData = partsData.filter(p => p.id != id);
+            refreshAllData();
+            showToast("Detal o'chirildi!");
+        }
+
+        function loadStandardCatalog() {
+            if (currentUser.role !== 'admin') return;
+            showToast("Standart detallar katalogi yuklandi!");
+            renderPartsTable();
+        }
+
+        // --- STAFF MANAGEMENT ---
+        function renderStaffTable() {
+            const tbody = document.getElementById('staffTableBody');
+            tbody.innerHTML = staffData.map(st => `
+                <tr>
+                    <td class="p-3 font-bold text-slate-800">${st.name}</td>
+                    <td class="p-3 text-blue-600 font-semibold">${st.username}</td>
+                    <td class="p-3"><span class="px-2 py-0.5 rounded ${st.role === 'admin' ? 'bg-purple-50 text-purple-700 font-bold' : 'bg-slate-100 text-slate-700'}">${st.role.toUpperCase()}</span></td>
+                    <td class="p-3 text-slate-600">${st.phone || '—'}</td>
+                    <td class="p-3 text-right">
+                        ${currentUser.role === 'admin' && st.id !== currentUser.id ? `<button onclick="deleteStaff(${st.id})" class="p-1.5 bg-rose-50 text-rose-600 rounded-lg"><i class="fa-solid fa-trash"></i></button>` : '—'}
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function addNewStaff(e) {
+            e.preventDefault();
+            if (currentUser.role !== 'admin') return;
+            const name = document.getElementById('newStaffName').value;
+            const username = document.getElementById('newStaffUsername').value.trim().toLowerCase();
+            const pass = document.getElementById('newStaffPass').value;
+            const role = document.getElementById('newStaffRole').value;
+            const phone = document.getElementById('newStaffPhone').value;
+
+            if (staffData.some(s => s.username === username)) {
+                showToast("Bu login band! Boshqa login kiriting.", "error");
+                return;
+            }
+
+            staffData.push({ id: Date.now(), name, username, pass, role, phone, active: true });
+            refreshAllData();
+            e.target.reset();
+            showToast("Yangi foydalanuvchi/xodim qo'shildi!");
+        }
+
+        function deleteStaff(id) {
+            if (currentUser.role !== 'admin') return;
+            if (confirm("Bu xodimni o'chirmoqchimisiz?")) {
+                staffData = staffData.filter(s => s.id !== id);
+                refreshAllData();
+                showToast("Xodim o'chirildi!");
+            }
+        }
+
+        // --- REPORTS ---
+        function renderReportsData() {
+            document.getElementById('rep-total').innerText = repairs.length;
+            document.getElementById('rep-finished').innerText = repairs.filter(r => r.status === 'Topshirilgan').length;
+            document.getElementById('rep-inproc').innerText = repairs.filter(r => r.status === "Ta'mirlanmoqda").length;
+            
+            let totalRev = 0, totalDebt = 0;
+            repairs.forEach(r => {
+                totalRev += Number(r.paidSum) || 0;
+                totalDebt += Number(r.debtSum) || 0;
+            });
+
+            document.getElementById('rep-rev').innerText = formatMoney(totalRev) + " so'm";
+            document.getElementById('rep-services-rev').innerText = formatMoney(totalRev * 0.7) + " so'm";
+            document.getElementById('rep-parts-rev').innerText = formatMoney(totalRev * 0.3) + " so'm";
+            document.getElementById('rep-paid-rev').innerText = formatMoney(totalRev) + " so'm";
+            document.getElementById('rep-debt-rev').innerText = formatMoney(totalDebt) + " so'm";
+        }
+
+        // --- PAYMENT MODAL ---
+        function openPaymentModal(id) {
+            const r = repairs.find(x => x.id === id);
+            if (!r) return;
+
+            const modal = document.getElementById('modalContentBox');
+            modal.innerHTML = `
+                <div class="p-6 space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                        <h3 class="font-bold text-slate-800 text-sm">To'lov qabul qilish — ${r.id}</h3>
+                        <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                    <div class="space-y-3 text-xs">
+                        <div>Mijoz: <b>${r.clientName}</b></div>
+                        <div>Umumiy summa: <b>${formatMoney(r.totalSum)} so'm</b></div>
+                        <div>Hozirgi to'langan: <span class="text-emerald-600 font-bold">${formatMoney(r.paidSum)} so'm</span></div>
+                        <div>Qolgan qarz: <span class="text-rose-600 font-bold">${formatMoney(r.debtSum)} so'm</span></div>
+                        
+                        <div class="pt-2">
+                            <label class="block font-semibold text-slate-600 mb-1">To'lanayotgan summa (so'm)</label>
+                            <input type="number" id="payAmountInput" value="${r.debtSum}" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 outline-none">
+                        </div>
+                    </div>
+                    <div class="flex justify-end gap-2 pt-3">
+                        <button onclick="closeModal()" class="px-4 py-2 rounded-xl border border-slate-300 text-xs">Bekor qilish</button>
+                        <button onclick="submitPayment('${r.id}')" class="px-5 py-2 bg-emerald-600 text-white rounded-xl text-xs font-semibold shadow">To'lovni saqlash</button>
+                    </div>
+                </div>
+            `;
+            document.getElementById('modalContainer').classList.remove('hidden');
+        }
+
+        function submitPayment(id) {
+            const r = repairs.find(x => x.id === id);
+            const amt = Number(document.getElementById('payAmountInput').value) || 0;
+            if (r) {
+                r.paidSum = (Number(r.paidSum) || 0) + amt;
+                r.debtSum = Math.max(0, r.totalSum - r.paidSum);
+                closeModal();
+                refreshAllData();
+                showToast("To'lov muvaffaqiyatli saqlandi!");
+            }
+        }
+
+        // --- PDF EXPORT MODAL SIMULATION ---
+        function openExportModal(id) {
+            const r = repairs.find(x => x.id === id);
+            if (!r) return;
+
+            const modal = document.getElementById('modalContentBox');
+            modal.innerHTML = `
+                <div class="p-8 space-y-6 bg-white text-slate-800" id="pdfReceiptArea">
+                    <!-- Header Branding -->
+                    <div class="text-center border-b border-slate-200 pb-4 space-y-1">
+                        <div class="w-12 h-12 bg-blue-600 text-white rounded-2xl mx-auto flex items-center justify-center font-bold text-lg mb-2">
+                            <i class="fa-solid fa-screwdriver-wrench"></i>
+                        </div>
+                        <h2 class="text-xl font-bold tracking-tight text-blue-700">YAQIN SERVIS</h2>
+                        <p class="text-xs text-slate-500">Kompyuter va noutbuklarni ta'mirlash xizmati</p>
+                        <div class="text-[11px] text-slate-600 font-medium pt-1">
+                            Tel: +998 (91) 122-06-65, +998 (95) 540-71-88
+                        </div>
+                        <div class="text-[11px] text-blue-600 font-medium">
+                            Telegram: @Kamronbe9 | @Yaqin_Servis
+                        </div>
+                    </div>
+
+                    <!-- Receipt Info -->
+                    <div class="grid grid-cols-2 gap-4 text-xs bg-slate-50 p-4 rounded-xl border border-slate-100">
+                        <div>
+                            <div><b>Kvitansiya №:</b> ${r.id}</div>
+                            <div><b>Mijoz:</b> ${r.clientName}</div>
+                            <div><b>Telefon:</b> ${r.clientPhone}</div>
+                        </div>
+                        <div class="text-right">
+                            <div><b>Qabul sanasi:</b> ${r.date} ${r.time}</div>
+                            <div><b>Qabul qiluvchi:</b> ${r.staff}</div>
+                            <div><b>Holat:</b> ${r.status}</div>
+                        </div>
+                    </div>
+
+                    <!-- Device Info -->
+                    <div class="text-xs space-y-1">
+                        <div><b>Qurilma:</b> ${r.devType} — ${r.devName} (${r.devBrand || ''} ${r.devModel || ''})</div>
+                        <div><b>Seriya raqami:</b> ${r.serial || '—'}</div>
+                        <div><b>Muammo:</b> ${r.problem || '—'}</div>
+                    </div>
+
+                    <!-- Services & Parts breakdown -->
+                    <div class="border-t border-slate-200 pt-3">
+                        <div class="text-xs font-bold text-slate-700 mb-2 uppercase tracking-wide">Bajarilgan ishlar va detallar:</div>
+                        <ul class="space-y-1 text-xs text-slate-600">
+                            ${r.services.map(s => `<li class="flex justify-between"><span>• ${s}</span><span class="font-medium text-slate-800">Xizmat</span></li>`).join('')}
+                            ${r.parts.map(p => `<li class="flex justify-between"><span>• ${p}</span><span class="font-medium text-slate-800">Detal</span></li>`).join('')}
+                        </ul>
+                    </div>
+
+                    <!-- Total Sum -->
+                    <div class="border-t border-slate-200 pt-4 flex items-center justify-between text-sm font-bold">
+                        <span>UMUMIY SUMMA:</span>
+                        <span class="text-blue-700 text-lg">${formatMoney(r.totalSum)} so'm</span>
+                    </div>
+
+                    <div class="text-center text-[10px] text-slate-400 pt-4 border-t border-slate-100">
+                        Xaridingiz uchun rahmat! Kafolat muddatini saqlang.
+                    </div>
+                </div>
+
+                <div class="p-4 bg-slate-50 border-t border-slate-200 flex justify-end gap-3">
+                    <button onclick="closeModal()" class="px-4 py-2 rounded-xl border border-slate-300 text-xs font-semibold">Yopish</button>
+                    <button onclick="window.print()" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold shadow">PDF / Chop etish</button>
+                </div>
+            `;
+            document.getElementById('modalContainer').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('modalContainer').classList.add('hidden');
+        }
+
+        function globalSearch(val) {
+            if (val.length > 1) {
+                switchTab('qidiruv');
+                document.getElementById('searchKeyword').value = val;
+                executeAdvancedSearch();
+            }
+        }
+
+        function exportBackup() {
+            if (currentUser.role !== 'admin') return;
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ repairs, clients, servicesData, partsData, staffData }));
+            const dlAnchorElem = document.createElement('a');
+            dlAnchorElem.setAttribute("href", dataStr);
+            dlAnchorElem.setAttribute("download", "yaqin_servis_backup.json");
+            dlAnchorElem.click();
+            showToast("Zaxira muvaffaqiyatli yuklab olindi!");
+        }
+
+        function clearAllData() {
+            if (currentUser.role !== 'admin') return;
+            if (confirm("Barcha ma'lumotlarni o'chirib yuborishni xohlaysizmi?")) {
+                localStorage.clear();
+                repairs = [];
+                clients = [];
+                refreshAllData();
+                showToast("Barcha ma'lumotlar tozalandi!");
+            }
+        }
+
+        function showToast(msg, type = 'success') {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMsg').innerText = msg;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
